@@ -1,10 +1,16 @@
-"""`twitter tweet <url> --json`, plus each tweet's `inReplyToId`.
+"""`twitter tweet <url> --json`, plus each tweet's `inReplyToId`, faster.
 
 twitter-cli parses X's GraphQL into its own model and drops
 `legacy.in_reply_to_status_id_str`, which is the only way to tell whether a
 reply in the conversation answers the focal tweet or another reply. This runs
 the same CLI command, records that field while twitter-cli parses each tweet,
 and adds it to the JSON it prints. Usage: python x_tweet.py <twitter args...>
+
+It also trims two waits that dominate a run (17s → a few seconds): the 2.5s
+sleep before every timeline page (a conversation pages through several,
+mostly empty, before the cursor runs out), and the cookie check, whose two
+endpoints both answer 404 now so it only costs time. Expired cookies still
+fail, on the real request.
 """
 
 import contextlib
@@ -12,8 +18,11 @@ import io
 import json
 import sys
 
-from twitter_cli import parser
+from twitter_cli import auth, config, parser
 from twitter_cli.cli import cli
+
+config.DEFAULT_CONFIG["rateLimit"]["requestDelay"] = 0.3
+auth.verify_cookies = lambda *args, **kwargs: {}
 
 in_reply_to: dict[str, str | None] = {}
 _parse_tweet_result = parser.parse_tweet_result
