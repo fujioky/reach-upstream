@@ -1,0 +1,13 @@
+# CLIs the proxy runs as subprocesses, plus the server stack.
+# twitter-cli: PyPI stops at 0.8.5, whose `search` 404s since X's Sept 2026 rebuild.
+twitter-cli @ git+https://github.com/jackwener/twitter-cli@7c634e0d396b1e7af9f63315b414925fe4f29ae7
+xiaohongshu-cli
+yt-dlp[default]
+telethon
+httpx
+mcp>=1.30,<2
+pydantic
+python-dotenv
+starlette
+uvicorn
+Pillow>=13
