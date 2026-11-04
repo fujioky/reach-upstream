@@ -53,7 +53,7 @@ cp .env.example .env            # 填 AGENT_REACH_PROXY_PASSWORD；不填代理�
   会话文件同一时间只能被一个进程打开，别处要用时先停代理。
 - YouTube 与网页不需要任何配置。
 
-对外暴露方式随意（Cloudflare Tunnel、nginx、Tailscale），并把 `AGENT_REACH_PROXY_PUBLIC_URL` 设成对外地址：MCP OAuth 元数据和 `/tgfile` 媒体链接都用它。然后把 Reach 指过来：`AGENT_REACH_BASE_URL=https://your-proxy.example.com`、`AGENT_REACH_PWD=<口令>`，或在 **后台 → 系统设置 → Agent Reach 接口** 填同样两项。
+对外暴露方式随意（Cloudflare Tunnel、nginx、Tailscale），并把 `AGENT_REACH_PROXY_PUBLIC_URL` 设成对外地址：MCP OAuth 元数据和 `/tgfile` 媒体链接都用它。然后把 Reach 指过来：`AGENT_REACH_BASE_URL=https://your-proxy.example.com`、`AGENT_REACH_PWD=<口令>`，或在 **后台 → 系统设置 → 抓取端接口** 填同样两项。
 
 其它命令：`run`（前台）、`stop`、`restart`、`status`、`logs [n]`、`sync-commands`、`cmd <命令…>`（在隔离运行时里执行命令）。用 systemd 托管时要用 `systemctl` 重启，别直接跑 `reach.sh`，否则 systemd 会跟丢进程。
 

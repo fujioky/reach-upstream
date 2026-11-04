@@ -53,7 +53,7 @@ Platforms that need a login keep their credentials inside the isolated runtime:
   Only one process may open the session file at a time; stop the proxy before using it elsewhere.
 - YouTube and web need nothing.
 
-Expose it any way you like (Cloudflare Tunnel, nginx, Tailscale) and set `AGENT_REACH_PROXY_PUBLIC_URL` to that origin; it is used for MCP OAuth metadata and for the `/tgfile` media links. Then point Reach at it: `AGENT_REACH_BASE_URL=https://your-proxy.example.com`, `AGENT_REACH_PWD=<password>`, or fill the same two values under **后台 → 系统设置 → Agent Reach 接口**.
+Expose it any way you like (Cloudflare Tunnel, nginx, Tailscale) and set `AGENT_REACH_PROXY_PUBLIC_URL` to that origin; it is used for MCP OAuth metadata and for the `/tgfile` media links. Then point Reach at it: `AGENT_REACH_BASE_URL=https://your-proxy.example.com`, `AGENT_REACH_PWD=<password>`, or fill the same two values under **后台 → 系统设置 → 抓取端接口**.
 
 Other commands: `run` (foreground), `stop`, `restart`, `status`, `logs [n]`, `sync-commands`, `cmd <command…>` (run a command inside the isolated runtime). Under systemd, restart through `systemctl` rather than `reach.sh`, or systemd loses track of the process.
 
