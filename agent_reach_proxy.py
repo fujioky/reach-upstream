@@ -1896,6 +1896,8 @@ def compact_tweet_comment(item: Any) -> dict[str, Any]:
         "stats": compact_stats(item),
         "images": tweet_media_urls(item),
         "replies": [],
+        # Id of the tweet this one answers (x_tweet.py adds it); None for a root tweet.
+        "in_reply_to": as_text(item.get("inReplyToId") or "") or None,
     }
 
 
@@ -1953,6 +1955,8 @@ def compact_tweet_item(item: Any) -> dict[str, Any]:
         "stats": compact_stats(item),
         "images": unique_values([*tweet_media_urls(item), *tweet_article_image_urls(item)]),
         "comments": [compact_tweet_comment(reply) for reply in replies[:COMMENT_LIMIT]],
+        # An X Article (long-form post) rather than a plain tweet.
+        "x_article": bool(as_text(item.get("articleText")).strip()),
     }
 
 
@@ -1981,7 +1985,11 @@ async def x_video_transcript(url: str) -> tuple[str, str, str]:
 async def reach_x(query: str, *, inline_images: bool = True) -> dict[str, Any]:
     url = extract_url(query)
     if url:
-        result = await run_command(["twitter", "tweet", url, "-n", str(COMMENT_LIMIT), "--json"], timeout=90, max_chars=5_000_000)
+        result = await run_command(
+            [str(DEFAULT_VENV_BIN / "python"), "-I", str(ROOT / "scripts" / "x_tweet.py"), "tweet", url, "-n", str(COMMENT_LIMIT), "--json"],
+            timeout=90,
+            max_chars=5_000_000,
+        )
         if not result["ok"]:
             return {"type": "item", "source": "twitter_tweet", "item": {}, "errors": [{"stage": "twitter_tweet", "error": result.get("error") or trim(result.get("stderr", ""), 1000)}]}
         data = load_json_any(result["stdout"])
@@ -1997,6 +2005,18 @@ async def reach_x(query: str, *, inline_images: bool = True) -> dict[str, Any]:
         main_raw_item = tweets[focal_index]
         item = compact_tweet_item(main_raw_item)
         item["comments"] = [compact_tweet_comment(reply) for reply in tweets[focal_index + 1 : focal_index + 1 + COMMENT_LIMIT]]
+        # Thread context: the tweets the focal one replies to, root first. X returns
+        # the whole ancestor chain ahead of the focal tweet; `parent_missing` names
+        # the next tweet up when the chain stops short of a root (deleted, hidden).
+        by_id = {as_text(tweet.get("id")): tweet for tweet in tweets[:focal_index]}
+        parents: list[dict[str, Any]] = []
+        parent_id = as_text(main_raw_item.get("inReplyToId") or "")
+        while parent_id and parent_id in by_id:
+            parents.insert(0, compact_tweet_comment(by_id[parent_id]))
+            parent_id = as_text(by_id[parent_id].get("inReplyToId") or "")
+        item["in_reply_to"] = as_text(main_raw_item.get("inReplyToId") or "") or None
+        item["parents"] = parents
+        item["parent_missing"] = parent_id or None
         # Video tweets: try to pull a subtitle track (rarely present, but when
         # it is we surface it just like the YouTube transcript).
         if any("video.twimg.com" in as_text(media) for media in item.get("images") or []):

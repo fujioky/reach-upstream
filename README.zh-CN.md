@@ -11,7 +11,7 @@
 **1. 针对转存场景定制的解析。** 所有平台都返回同一种结构：
 
 - `id`、`url`、`title`、`content`、`author {id, name, handle, url, avatar_url}`、`created_at`（ISO 8601）、`stats {likes, comments, reposts, views, collects}`、`images[]`、`comments[]`。
-- **X**：从 `twitter-cli` 返回的整段会话里按 status id 选出目标推文，其后的回复作为评论（至多 `COMMENT_LIMIT` 条），回复里的图片一并带上。X 长文（Article）取文章标题和正文，内嵌图片以 Markdown 图片行留在原位置。保留 `video.twimg.com` 视频地址，视频带字幕轨时一并提取。搜索返回同样精简的推文。
+- **X**：从 `twitter-cli` 返回的整段会话里按 status id 选出目标推文，其后的回复作为评论（至多 `COMMENT_LIMIT` 条），回复里的图片一并带上。每条推文都带 `in_reply_to`，回复的回复可以按层级嵌套；item 还带 `parents`（它所回复的推文，从根帖开始）和 `parent_missing`（链条没到根帖时下一条的 id）。`twitter-cli` 会丢掉回复对象字段，所以由 `scripts/x_tweet.py` 代跑它的 `tweet` 命令并把这个字段补回来。X 长文（`x_article: true`）取文章标题和正文，内嵌图片以 Markdown 图片行留在原位置。保留 `video.twimg.com` 视频地址，视频带字幕轨时一并提取。搜索返回同样精简的推文。
 - **YouTube**：全部渐进式 `video_sources[]`（清晰度、url、ext、format_id、大小、有无音视频，DASH 仅作兜底）、评论、频道头像、`duration`、缩略图。
 - **字幕是数据**：`transcript`、`transcript_lang`、`transcript_vtt`（规范化的带时间轴 WebVTT，可直接喂给 `<track>`）。优先级：人工中文 › 自动中文（仅中文音频）› 人工英文 › 自动英文 › 原生语言轨。YouTube 的自动*翻译*轨有意排除，下游拿原文翻译效果好得多。
 - **Telegram**（`t.me/<频道>/<id>` 与私有的 `t.me/c/<id>/<id>`）：用用户账号会话读取，开了「禁止保存内容」的群，成员账号照样能读。一组相册、或群里同一人连发的几条，合并成一个 item 返回。媒体没有公网地址，经 `/tgfile` 流式转发。
