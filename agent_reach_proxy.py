@@ -1901,7 +1901,6 @@ def compact_tweet_comment(item: Any) -> dict[str, Any]:
     }
 
 
-MARKDOWN_HEADING_RE = re.compile(r"^#{1,6}\s+", re.MULTILINE)
 # twitter-cli (>= 0.8.6) writes an article's inline images as `![caption](url)`
 # lines in place and its links as `[label](url)`.
 ARTICLE_IMAGE_RE = re.compile(r"^!\[[^\]\n]*\]\((https?://[^)\s]+)\)$", re.MULTILINE)
@@ -1917,16 +1916,16 @@ def tweet_article_content(item: dict[str, Any], text: str) -> tuple[str, str]:
 
     twitter-cli exposes the article as ``articleTitle`` + ``articleText`` (draft.js
     blocks flattened to Markdown). The tweet's own ``text`` is only the teaser plus
-    a t.co link, so the article body becomes the content. Consumers render plain
-    text, so heading markers are dropped and links reduced to their label; image
-    lines stay, normalised to ``![](url)``, so consumers can place the images.
+    a t.co link, so the article body becomes the content. Links are reduced to
+    their label; heading lines keep their ``#`` markers and image lines stay,
+    normalised to ``![](url)``, so consumers can render headings (and an outline)
+    and place the images.
     """
     article_text = as_text(item.get("articleText")).strip()
     if not article_text:
         return trim(text, 100), text
     title = as_text(item.get("articleTitle")).strip() or trim(text, 100)
-    body = MARKDOWN_HEADING_RE.sub("", article_text)
-    body = MARKDOWN_LINK_RE.sub(lambda m: re.sub(r"\\([\[\]])", r"\1", m.group(1)), body)
+    body = MARKDOWN_LINK_RE.sub(lambda m: re.sub(r"\\([\[\]])", r"\1", m.group(1)), article_text)
     body = ARTICLE_IMAGE_RE.sub(r"![](\1)", body)
     return title, "\n\n".join(part for part in (text.strip(), title, body) if part)
 
