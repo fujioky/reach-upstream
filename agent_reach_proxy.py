@@ -112,7 +112,9 @@ PLATFORM_ALIASES = {
 SUPPORTED_PLATFORMS = ["xhs", "x", "web", "youtube", "tg"]
 PUBLIC_HOST = urlparse(PUBLIC_URL).netloc
 ALLOWED_IMAGE_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"}
-PROXY_DNS_NETWORKS = [ipaddress.ip_network("198.18.0.0/15")]
+# Fake-IP ranges a TUN proxy (mihomo) answers DNS with: the IPv4 and IPv6
+# benchmarking blocks. Both stand for a public domain the proxy dials itself.
+PROXY_DNS_NETWORKS = [ipaddress.ip_network("198.18.0.0/15"), ipaddress.ip_network("2001:2::/48")]
 READ_ONLY_ANNOTATIONS = ToolAnnotations(
     readOnlyHint=True,
     destructiveHint=False,
