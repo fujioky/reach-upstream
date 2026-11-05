@@ -393,6 +393,9 @@ async def oauth_authorization_server_metadata(_: Request) -> JSONResponse:
             "token_endpoint_auth_methods_supported": ["none"],
             "code_challenge_methods_supported": ["S256"],
             "scopes_supported": [MCP_OAUTH_SCOPE],
+            # URL client_ids are accepted without registration; the redirect is
+            # still limited to OAUTH_TRUSTED_REDIRECT_URIS (oauth_redirect_allowed).
+            "client_id_metadata_document_supported": True,
         },
         headers={"Cache-Control": "no-store"},
     )
